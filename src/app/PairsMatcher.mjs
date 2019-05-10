@@ -3,13 +3,13 @@
  * @readonly
  * @enum
  */
-const PairsMatcherEvents = {
+export const PairsMatcherEvents = {
     // gameStart: 'gameStart',
-    gameOver: 'gameOver',
-    match: 'match',
-    mismatch: 'mismatch',
-    active: 'active',
-    inactive: 'inactive'
+    GameOver: 'Game over',
+    Match: 'Match',
+    Mismatch: 'Mismatch',
+    Active: 'Active',
+    Inactive: 'Inactive'
 }
 
 /**
@@ -166,7 +166,7 @@ export default class PairsMatcher {
                 for (let pairId = 0; pairId < pairsCount; pairId++) {
                     // добавляем иформацию в выходной массив
                     itemsInfo.push({
-                        id: itemId,
+                        itemIndex: itemId,
                         pairId
                     });
 
@@ -177,7 +177,7 @@ export default class PairsMatcher {
 
                     // добавляем иформацию в выходной массив
                     itemsInfo.push({
-                        id: itemId,
+                        itemIndex: itemId,
                         pairId
                     });
 
@@ -226,7 +226,7 @@ export default class PairsMatcher {
             return;
         }
 
-        console.log(`активный элемент: ${this.selectedItemId}; выбранный элемент: ${item.id}`);
+        // console.log(`активный элемент: ${this.selectedItemId}; выбранный элемент: ${item.id}`);
 
 
         /*  сверяем с выбранным ранее объектом, если он был выбран */
@@ -238,27 +238,27 @@ export default class PairsMatcher {
                 // если это - одна пара - помечаем их как угаанные и отправляем событие с индексом пары
                 item.state = selectedItem.state = ItemState.match;
                 this.selectedItemId = -1;
-                this.emit(PairsMatcherEvents.match, item.pairId);
+                this.emit(PairsMatcherEvents.Match, [selectedItem.id, item.id]);
 
                 this.pairsToMatch--;
-
                 if (this.pairsToMatch === 0) {
                     // если все пары угаданы, то отправляем соответствующее событие
                     this.endGame();
-                    this.emit(PairsMatcherEvents.gameOver);
+                    this.emit(PairsMatcherEvents.GameOver);
                 }
             }
             else {
                 // иначе помечаем обоих как неактивные и отправляем событие с индексом пары
                 item.state = selectedItem.state = ItemState.inactive;
+                this.emit(PairsMatcherEvents.Active, item.id);
+                this.emit(PairsMatcherEvents.Mismatch, [selectedItem.id, item.id]);
                 this.selectedItemId = -1;
-                this.emit(PairsMatcherEvents.mismatch, item.pairId);
             }
         }
         else {
             this.selectedItemId = item.id;
             item.state = ItemState.active;
-            this.emit(PairsMatcherEvents.active, [item.id]);
+            this.emit(PairsMatcherEvents.Active, item.id);
         }
         console.table(this.items);
     }

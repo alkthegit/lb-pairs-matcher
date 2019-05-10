@@ -1,0 +1,99 @@
+* {
+    padding: 0px;
+    margin: 0px;
+}
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+header{
+    height: 15vh;
+    background-color: #005272;
+    color: white;
+    padding-bottom: 10px;
+}
+
+header h1{
+    padding-top: 10px;
+    opacity: 0.8;
+    text-align: center;
+}
+
+header h1::before{
+    content: '👫';
+    position: absolute;
+    transform: translateX(-110%);
+    font-size: 1.5em;
+}
+
+header p{
+    margin-top: 10px;
+    text-align: center;
+    opacity: 0.8;
+}
+
+header .main-subheading{
+    font-size: 16px;
+    margin-top: -3px;
+    transform: rotate(-2deg) translateX(5.5em);
+}
+
+.board{
+    width: 500px;
+    height: 500px;
+    border: 2px dashed lightcoral;
+    margin: 15px auto;
+    padding: 15px;
+    box-sizing: content-box;
+    /* background-color: lightgray; */
+    background-color: none;
+}
+
+.items{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+.item{
+    width: 120px;
+    height: 120px;
+    border: 1px solid grey;
+    box-sizing: border-box;
+    margin: 2px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.item.facedown{
+    background-color: white;
+    position: relative;
+}
+
+
+.item.faceup{
+    transform: translateX(-5px) translateY(-5px) scale(1.03);
+    position: relative;
+    z-index: 2;
+}
+
+.item.faceup:before{
+    content: "";
+    position: absolute;
+    top:0;
+    left:0;
+    bottom:0;
+    right:0;
+    box-shadow: 5px 5px 10px 5px black;
+    border-radius: 5px;
+
+    z-index: -1;
+}
+
+.item.match{
+    /* z-index: 0; */
+    transform: scale(0.85)
+}
+
