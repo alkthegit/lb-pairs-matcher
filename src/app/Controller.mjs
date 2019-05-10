@@ -64,6 +64,8 @@ export default class Controller {
         this.containerDiv = containerDiv;
         this.pairsMatcher = pairsMatcher;
 
+        this.generateViewItems();
+        this.bindViewEventListeners();
         this.startNewGame();
         console.log(`Controller initialized`);
     }
@@ -74,12 +76,10 @@ export default class Controller {
      */
     startNewGame() {
         const pairsCount = this.items.lengh;
-        this.generateViewItems();
-        this.bindViewEventListeners();
 
         this.pairsMatcher.newGame(pairsCount)
             .then((itemsInfo) => {
-                console.table(this.items);
+                // console.table(this.items);
 
                 let itemHTML = '';
 
@@ -89,6 +89,7 @@ export default class Controller {
                 let itemElementId = '';
                 // console.table(this.items);
 
+                this.itemsElement.innerHTML = "";
                 // по полученому массиву расстановок объектов порождаем представления объектов на странице
                 itemsInfo.forEach((itemInfo) => {
                     itemGame = this.items[itemInfo.itemIndex];
@@ -138,7 +139,7 @@ export default class Controller {
                                 itemElement.style.backgroundColor = '';
                                 itemElement.classList.add('facedown');
                             });
-                    }, 1700);
+                    }, 800);
                 });
 
                 this.pairsMatcher.on(PairsMatcherEvents.GameOver, () => {
@@ -146,6 +147,7 @@ export default class Controller {
                     appState.gameState = GameStates.GameOver;
                 });
 
+                appState.gameState = GameStates.InProgress;
                 console.log('Игра началась')
             });
     }
@@ -161,6 +163,12 @@ export default class Controller {
         const itemsHTML = `<div class="items"></div>`;
         this.boardElement.insertAdjacentHTML("afterbegin", itemsHTML);
         this.itemsElement = this.containerDiv.querySelector('.items');
+
+        // кнопка Новая игра
+        const viewHTML = `
+            <button>Новая игра</button>
+        `;
+        this.boardElement.insertAdjacentHTML('afterbegin', viewHTML);
     }
 
     /**
@@ -178,6 +186,11 @@ export default class Controller {
                 const itemId = +event.target.id.split('-')[1];
                 this.selectItem(itemId);
             }
+        });
+
+        const buttonElement = this.boardElement.querySelector('button');
+        buttonElement.addEventListener('click', () => {
+            this.startNewGame();
         });
     }
 

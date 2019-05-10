@@ -260,7 +260,7 @@ export default class PairsMatcher {
             item.state = ItemState.active;
             this.emit(PairsMatcherEvents.Active, item.id);
         }
-        console.table(this.items);
+        // console.table(this.items);
     }
 
     /**
