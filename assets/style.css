@@ -70,6 +70,11 @@ header .main-subheading{
     background-color: white;
 }
 
+.item.facedown:hover{
+    background-color: white;
+    box-shadow: inset 0px 0px 5px 1px goldenrod;
+}
+
 .item.faceup{
     transform: translateX(-2px) translateY(-2px) scale(1.03);
     position: relative; 
