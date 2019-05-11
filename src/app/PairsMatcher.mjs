@@ -37,10 +37,10 @@ class GameStats {
      * 
      * @type {Date}
      */
-    endDate = undefined;
+    endDate;
 
     /**
-     * Количество миллисекунд, пршедших с начала игры startDate до конца игры endDate
+     * Количество миллисекунд, прошедших с начала игры startDate до конца игры endDate
      * 
      * @type {number}
      */
@@ -200,16 +200,12 @@ export default class PairsMatcher {
         // находим выбранный объект во внутреннем массиве
         const item = this.items.find(e => e.id === id);
 
-
         let selectedItem;
         // если данный объект уже был отгадан или активирован, то ничего не делаем
         if (item.state !== ItemState.inactive) {
             console.log(`указанный объект id=${id} уже показан или угадан, ничего не делаем`);
             return;
         }
-
-        // console.log(`активный элемент: ${this.selectedItemId}; выбранный элемент: ${item.id}`);
-
 
         /*  сверяем с выбранным ранее объектом, если он был выбран */
         if (this.selectedItemId !== -1) {
@@ -226,7 +222,8 @@ export default class PairsMatcher {
                 if (this.pairsToMatch === 0) {
                     // если все пары угаданы, то отправляем соответствующее событие
                     this.endGame();
-                    this.emit(PairsMatcherEvents.GameOver);
+                    const gameStats = this.getGameStats();
+                    this.emit(PairsMatcherEvents.GameOver, gameStats);
                 }
             }
             else {
@@ -238,9 +235,11 @@ export default class PairsMatcher {
             }
         }
         else {
+            // это первый объект, который выбрали
             this.selectedItemId = item.id;
             item.state = ItemState.active;
             this.emit(PairsMatcherEvents.Active, item.id);
+            this.gameStats.tries++;
         }
         // console.table(this.items);
     }
@@ -249,7 +248,9 @@ export default class PairsMatcher {
      * Предоставляет статистику о текущей игре
      */
     getGameStats() {
-
+        return {
+            ...this.gameStats
+        }
     }
 
     /**
@@ -257,6 +258,7 @@ export default class PairsMatcher {
      */
     endGame() {
         this.gameStats.endDate = Date.now();
+        this.gameStats.milliseconds = this.gameStats.endDate - this.gameStats.startDate;
     };
 
     /**

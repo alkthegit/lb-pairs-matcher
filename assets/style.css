@@ -104,4 +104,11 @@ header .main-subheading{
 .board button{
     margin-bottom: 5px;
     height: 1.5em;
+    padding: 1px 3px;
+}   
+
+.board input{
+    width: 7em;
+    float: right;
+    text-align: right;
 }
