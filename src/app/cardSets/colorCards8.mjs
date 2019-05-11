@@ -11,34 +11,49 @@ const colors = [
 ];
 
 const colorCards = [];
-let newCard;
-let itemId = 0;
-let pairId = 0;
-colors.forEach((color) => {
-    newCard = {
-        id: itemId,
-        pairId: pairId,
-        color
+
+const ensureItems = function ensureItems() {
+    if (colorCards.length !== 0) {
+        return [...colorCards];
     };
-    colorCards.push(newCard);
-    itemId++;
 
-    newCard = {
-        id: itemId,
-        pairId: pairId,
-        color
-    };
-    colorCards.push(newCard);
-    itemId++
+    let newCard;
+    let itemId = 0;
+    let pairId = 0;
+    colors.forEach((color) => {
+        newCard = {
+            id: itemId,
+            pairId: pairId,
+            color
+        };
+        colorCards.push(newCard);
+        itemId++;
 
-    pairId++;
-});
+        newCard = {
+            id: itemId,
+            pairId: pairId,
+            color
+        };
+        colorCards.push(newCard);
+        itemId++
 
-const ColorCards8 = new class ColorCards8 {
-}();
+        pairId++;
+    });
+};
 
-ColorCards8.getItems = function getItems() {
-    return [...colorCards]
+export default function getItems() {
+    ensureItems();
+    return [...colorCards];
 }
 
-export default ColorCards8;
+const getItemsMap = function getItemsMap() {
+    ensureItems();
+    return colorCards.map((card) => {
+        return {
+            id: card.id,
+            pairId: card.pairId
+        };
+    })
+};
+
+export { getItemsMap };

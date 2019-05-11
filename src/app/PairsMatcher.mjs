@@ -15,8 +15,8 @@ export const PairsMatcherEvents = {
 /**
  * Информаця об объекте игры во внутреннем представлении модели
  * @typedef {Object} ItemInfo
- * @property {number} id Индекс объекта во внутреннем представлении модели
- * @property {number} order Порядковый номер объекта во внутреннем представлении модели. При начале новой игры все пары "перемешиваются", при этом данное значение соответствует условному положению объекта в интерфейсе пользователя. Контроллер интерфейса сам решает, каким образом использовать данный порядок, например, просто выбрать по данному значению элемент индекса з массива объектов игры: gameCards[order] 
+ * @property {number} id Уникальный идентификатор объекта в наборе пар
+ * @property {number} pairId Уникальный идентификатор пары в наборе пар
  */
 
 /**
@@ -141,67 +141,49 @@ export default class PairsMatcher {
 
     /**
      * Начинает новую игру "Найди пару"
-     * @param {number} pairsCount Количество пар в новой игре
-     * @return {Promise<ItemInfo[]>} - информация об объектах новой игры
+     * @param {ItemInfo[]} itemsMap Исходная раскладка объектов в наборе объектов - для последующего размещения на игровом поле
+     * @return {Promise<number[]>} - Массив перемешанных идентификаторов из массива itemsMap для раскладки в новой игре
      */
-    newGame(pairsCount = 8) {
+    newGame2(itemsMap) {
         return new Promise((resolve, reject) => {
             try {
-                if (typeof pairsCount !== 'number') {
-                    throw new Error(`Необходимо передать целое значение, получено значение '${pairsCount}'`);
+                if (!itemsMap || itemsMap.length === 0) {
+                    throw new Error(`Необходимо передать исходную раскладку объектов, получено значение: '${itemsMap}'`);
                 }
 
-                // оставляем только целую часть
-                pairsCount = Math.trunc(pairsCount);
-
-                if (pairsCount <= 0) {
-                    throw new Error(`Необходимо передать значение, большее нуля, получено значение '${pairsCount}'`);
+                if (itemsMap.length % 2 !== 0) {
+                    throw new Error(`Число объектов в наборе должно быть четный, передано значение: '${itemsMap}'`);
                 }
 
                 this.items = [];
-                let itemsInfo = [];
+                let itemIds = [];
 
-                // заполняем начальный массив объектов - просто ставим по порядку все пары рядом в одном массивы и индексируем элементы "насквозь" от 0 до pairsCount*2-1 
-                let itemId = 0;
-                for (let pairId = 0; pairId < pairsCount; pairId++) {
-                    // добавляем иформацию в выходной массив
-                    itemsInfo.push({
-                        itemIndex: itemId,
-                        pairId
-                    });
+                // на основе исходного набора объектов заполняем внутренний массив
+                itemsMap.forEach((item) => {
+                    this.items.push(new Item(item.id, ItemState.inactive, item.pairId));
+                });
 
-                    // добавляем информаию во внутреннее представление
-                    this.items.push(new Item(itemId, ItemState.inactive, pairId));
+                // предварительно готовим массив идентификатором исходного набора
+                itemIds = itemsMap.map((e) => e.id);
 
-                    itemId++
-
-                    // добавляем иформацию в выходной массив
-                    itemsInfo.push({
-                        itemIndex: itemId,
-                        pairId
-                    });
-
-                    // добавляем информаию во внутреннее представление
-                    this.items.push(new Item(itemId, ItemState.inactive, pairId));
-
-                    itemId++
-                }
-
-                // перемешиваем массив itemsInfo алгоритмом Фишера-Йейтса
+                // перемешиваем массив ItemIds алгоритмом Фишера-Йейтса
                 let rnd = -1;
-                for (let i = itemsInfo.length - 1; i >= 1; i--) {
+                for (let i = itemIds.length - 1; i >= 1; i--) {
                     rnd = Math.trunc(Math.random() * (i + 1));
                     if (rnd !== i) {
-                        [itemsInfo[rnd], itemsInfo[i]] = [itemsInfo[i], itemsInfo[rnd]];
+                        [itemIds[rnd], itemIds[i]] = [itemIds[i], itemIds[rnd]];
                         [this.items[rnd], this.items[i]] = [this.items[i], this.items[rnd]];
                     }
                 }
 
+                const pairsCount = itemsMap.length / 2;
                 this.pairsCount = pairsCount;
                 this.pairsToMatch = pairsCount;
                 this.resetGameStats();
 
-                resolve(itemsInfo);
+                // на выходе получился массив с перемешанными позициями исходного массива. Клиент данного метода
+                // может обращаться к своему исходному массиву при помощи данного набора: Исходный_массив[itemIndexes[index]]
+                resolve(itemIds);
             }
             catch (err) {
                 reject(err);

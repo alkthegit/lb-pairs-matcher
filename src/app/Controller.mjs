@@ -1,7 +1,6 @@
 import PairsMatcher, { PairsMatcherEvents } from "./PairsMatcher.mjs";
-
-import ColorCards8 from "./cardSets/colorCards8.mjs";
-
+import { getItemsMap } from "./cardSets/colorCards8.mjs";
+import getItems from "./cardSets/colorCards8.mjs";
 const GameStates = {
     NotStarted: 'Not started',
     InProgress: 'In progress',
@@ -37,14 +36,14 @@ export default class Controller {
 
     /**
      * Набор объектов внутри игровой доски
-     * @type {HTMLDivElement}
+     * @type {HTMLDivElement[]}
      */
     itemsElement;
 
     /**
      * Текущий массив объектов для игры. По умолчанию - цветные карточки
      */
-    items = ColorCards8.getItems();
+    items = getItems();
 
     /**
      * Конструктор
@@ -64,9 +63,10 @@ export default class Controller {
         this.containerDiv = containerDiv;
         this.pairsMatcher = pairsMatcher;
 
-        this.generateViewItems();
+        this.generateViewElements();
         this.bindViewEventListeners();
         this.startNewGame();
+        // console.table(this.items);
         console.log(`Controller initialized`);
     }
 
@@ -75,10 +75,9 @@ export default class Controller {
      * @param {number} pairsCount Количество пар объектов в игре
      */
     startNewGame() {
-        const pairsCount = this.items.lengh;
-
-        this.pairsMatcher.newGame(pairsCount)
-            .then((itemsInfo) => {
+        const itemsMap = getItemsMap();
+        this.pairsMatcher.newGame2(itemsMap)
+            .then((itemIds) => {
                 // console.table(this.items);
 
                 let itemHTML = '';
@@ -91,8 +90,8 @@ export default class Controller {
 
                 this.itemsElement.innerHTML = "";
                 // по полученому массиву расстановок объектов порождаем представления объектов на странице
-                itemsInfo.forEach((itemInfo) => {
-                    itemGame = this.items[itemInfo.itemIndex];
+                itemIds.forEach((itemId) => {
+                    itemGame = this.items.find(item => item.id === itemId);
 
                     itemElementId = `item-${itemGame.id}`;
                     itemHTML = `
@@ -155,7 +154,7 @@ export default class Controller {
     /**
      * Создает и связывает элементы представления (интерфейса) с внутренними структурами
      */
-    generateViewItems() {
+    generateViewElements() {
         const boardHTML = `<div class="board"></div>`;
         this.containerDiv.insertAdjacentHTML("afterbegin", boardHTML);
         this.boardElement = this.containerDiv.querySelector(".board");
