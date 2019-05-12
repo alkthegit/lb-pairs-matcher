@@ -358,7 +358,7 @@ export default class Controller {
         winStrategy.forEach((e, i) => {
             setTimeout(() => {
                 this.selectItem(e.id);
-            }, i * 250)
+            }, i * 150)
         });
     }
 
