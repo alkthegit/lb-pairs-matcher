@@ -355,7 +355,6 @@ export default class Controller {
      * @private
      */
     onGiveUp = () => {
-        console.log(appState.matchIds);
         if (appState.gameState !== GameStates.InProgress) {
             return;
         }
