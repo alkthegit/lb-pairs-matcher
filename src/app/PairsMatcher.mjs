@@ -151,7 +151,7 @@ export default class PairsMatcher {
      * @param {ItemInfo[]} itemsMap Исходная раскладка объектов в наборе объектов - для последующего размещения на игровом поле
      * @return {Promise<number[]>} - Массив перемешанных идентификаторов из массива itemsMap для раскладки в новой игре
      */
-    newGame2(itemsMap) {
+    newGame(itemsMap) {
         return new Promise((resolve, reject) => {
             try {
                 if (!itemsMap || itemsMap.length === 0) {
@@ -173,7 +173,6 @@ export default class PairsMatcher {
                 /* заполняем последовательность ходов (id объектов, ведущую к победе)
                     для этого упорядочиваем массив объектов по ключу (pairId, id)
                 */
-                console.table(this.items);
                 this.winStrategy = [...this.items]
                     .map(item => {
                         return { id: item.id, pairId: item.pairId }
@@ -238,7 +237,6 @@ export default class PairsMatcher {
     selectItem(id) {
         // находим выбранный объект во внутреннем массиве
         const item = this.items.find(e => e.id === id);
-        console.log(`selected: ${item.id}`);
 
         let selectedItem;
         // если данный объект уже был отгадан или активирован, то ничего не делаем

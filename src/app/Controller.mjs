@@ -84,6 +84,22 @@ export default class Controller {
     timeLabelElement
 
     /**
+     * Кнопка Начать игру
+     * 
+     * @type {HTMLButtonElement}
+     * @private
+     */
+    ButtonElement;
+
+    /**
+     * Кнопка Сдаюсь
+     * 
+     * @type {HTMLButtonElement}
+     * @private
+     */
+    giveUpButtonElement;
+
+    /**
      * Текущий массив объектов для игры. По умолчанию - цветные карточки
      * 
      * @private
@@ -130,7 +146,7 @@ export default class Controller {
      */
     startNewGame() {
         const itemsMap = getItemsMap();
-        this.pairsMatcher.newGame2(itemsMap)
+        this.pairsMatcher.newGame(itemsMap)
             .then((itemIds) => {
                 // console.table(this.items);
 
@@ -170,6 +186,7 @@ export default class Controller {
                     const milliseconds = `000${date.getMilliseconds().toString()}`.slice(-3);
                     this.timeLabelElement.value = `${minutes}:${seconds}.${milliseconds}`;
                 }, 20);
+                this.toggleElementEnabled(this.startGameButtonElement);
             });
     }
 
@@ -198,6 +215,10 @@ export default class Controller {
             </div>
         `;
         this.boardElement.insertAdjacentHTML('afterbegin', viewHTML);
+
+        this.startGameButtonElement = this.boardElement.querySelector(`#startGame`);
+        this.giveUpButtonElement = this.boardElement.querySelector(`#giveUp`);
+
         this.timeLabelElement = this.containerDiv.querySelector('#timeLabel');
     }
 
@@ -330,6 +351,8 @@ export default class Controller {
         setTimeout(() => {
             alert(`Вы выиграли!\n\n\n   Затраченно времени: ${gameTime}\n   Сделано ходов: ${gameStats.tries}`)
         }, 10);
+
+        this.toggleElementEnabled(this.startGameButtonElement);
     }
 
     /**
@@ -339,7 +362,6 @@ export default class Controller {
      */
     onStartGame = () => {
         this.startNewGame();
-        console.table(this.pairsMatcher.getWinStrategy());
     }
 
     /**
@@ -362,10 +384,32 @@ export default class Controller {
         });
     }
 
+    /**
+     * Управляет состоянием игры в зависимости от показа несовпавших объектов
+     * При несовпадении выбранных объектов они переводятся в исходное состояние по таймеру.
+     * До этого времени они оба "активны" (видны, слышны и т.д. - в зависимости от набора объектов), игра находится в состоянии GameStates.Showing и активировать другие объекты нельзя.
+     * По мере перехода активированных объектов в исходное состояние - "не угадано", игра возвращается в состояние GameStates.InProgress и прочие объекты становятся доступны для активации.
+     * 
+     * @private
+     */
     toggleVisibleMismatchItemsCount = () => {
         appState.mismatchCount--;
         if (appState.mismatchCount === 0) {
             appState.gameState = GameStates.InProgress;
+        }
+    }
+
+    /**
+     * Переключает состояние доступности для элемента (например, кнопок в игре)
+     * 
+     * @private
+     */
+    toggleElementEnabled = (element) => {
+        if (!element.getAttribute('disabled')) {
+            element.setAttribute('disabled', 'true')
+        }
+        else {
+            element.removeAttribute('disabled', 'false');
         }
     }
 }
