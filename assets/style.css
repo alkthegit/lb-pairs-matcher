@@ -68,6 +68,8 @@ header .main-subheading{
 
 .item.facedown{
     background-color: white;
+    transition: all 0.1s linear;
+
 }
 
 .item.facedown:hover{
@@ -83,7 +85,7 @@ header .main-subheading{
     transform: translateX(-2px) translateY(-2px) scale(1.03);
     position: relative; 
     z-index: 0;
-    transition: transform 0.2s linear;
+    transition: all 0.2s linear;
     /* box-shadow: 5px 5px 20px 5px black; */
 }
 

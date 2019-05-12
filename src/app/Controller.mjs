@@ -283,11 +283,9 @@ export default class Controller {
      */
     onItemActivate = (itemId) => {
         console.log('Event: active');
+
         // помечаем активированный элемент как активный в представлении
-        let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
-        itemElement.classList.remove('facedown');
-        itemElement.classList.add('faceup');
-        itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color;
+        this.setItemActivated(itemId);
     }
 
     /**
@@ -297,18 +295,9 @@ export default class Controller {
      */
     onItemsMatch = (itemIds) => {
         console.log(`Event: match 😄`);
-        this.items
-            .filter(item => itemIds.includes(item.id))
-            .map(item => item.id)
-            .forEach(itemId => {
-                let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
-                // setTimeout(100, () => {
-                itemElement.classList.remove('faceup');
-                itemElement.classList.remove('facedown');
-                itemElement.classList.add('match');
-                itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color
-                // });
-            });
+
+        // помечаем активированный элементы как угаданные
+        this.setItemsMatch(itemIds);
     }
 
     /**
@@ -319,21 +308,8 @@ export default class Controller {
     onItemsMismatch = (itemIds) => {
         console.log(`Event: mismatch 😔`);
 
-        appState.mismatchCount = 2;
-        appState.gameState = GameStates.Showing;
-
-        setTimeout(() => {
-            this.items
-                .filter(item => itemIds.includes(item.id))
-                .map(item => item.id)
-                .forEach(itemId => {
-                    const itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
-                    itemElement.classList.remove('faceup');
-                    itemElement.style.backgroundColor = '';
-                    itemElement.classList.add('facedown');
-                    this.toggleVisibleMismatchItemsCount();
-                });
-        }, 800);
+        // помечаем активированный элементы как неугаданные
+        this.setItemsMismatch(itemIds);
     }
 
     /**
@@ -411,5 +387,61 @@ export default class Controller {
         else {
             element.removeAttribute('disabled', 'false');
         }
+    }
+
+    /**
+     * Переводит указанные элемент в состояние "активирован"
+     * 
+     * @private
+     */
+    setItemActivated = (itemId) => {
+        let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
+        itemElement.classList.remove('facedown');
+        itemElement.classList.add('faceup');
+        itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color;
+    }
+
+    /**
+     * Переводит указанные объекты в состояние "не угадано".
+     * 
+     * @private
+     */
+    setItemsMismatch = (itemIds) => {
+        appState.mismatchCount = 2;
+        appState.gameState = GameStates.Showing;
+
+        setTimeout(() => {
+            this.items
+                .filter(item => itemIds.includes(item.id))
+                .map(item => item.id)
+                .forEach(itemId => {
+                    const itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
+                    itemElement.classList.remove('faceup');
+                    itemElement.style.backgroundColor = '';
+                    itemElement.classList.add('facedown');
+                    this.toggleVisibleMismatchItemsCount();
+                });
+        }, 800);
+
+    }
+
+    /**
+     * Переводит указанные объекты в состояние "угадано".
+     * 
+     * @private
+     */
+    setItemsMatch = (itemIds) => {
+        this.items
+            .filter(item => itemIds.includes(item.id))
+            .map(item => item.id)
+            .forEach(itemId => {
+                let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
+                // setTimeout(100, () => {
+                itemElement.classList.remove('faceup');
+                itemElement.classList.remove('facedown');
+                itemElement.classList.add('match');
+                itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color
+                // });
+            });
     }
 }
