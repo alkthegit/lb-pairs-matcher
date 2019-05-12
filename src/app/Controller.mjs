@@ -1,16 +1,33 @@
 import PairsMatcher, { PairsMatcherEvents } from "./PairsMatcher.mjs";
 import { getItemsMap } from "./cardSets/colorCards8.mjs";
 import getItems from "./cardSets/colorCards8.mjs";
+
 const GameStates = {
     NotStarted: 'Not started',
     InProgress: 'In progress',
     GameOver: 'Game over',
     Mismatch: 'Mismatch',
-    Cheating: 'Cheating'
-}
+    Cheating: 'Cheating',
+    Showing: 'Showing'
+};
 
+/**
+ * Текущее состояние приложения
+ */
 const appState = {
-    gameState: GameStates.NotStarted
+    /**
+     * Состояние игры
+     * 
+     * @type {GameStates}
+     */
+    gameState: GameStates.NotStarted,
+
+    /**
+     * Текущее количество показанных несовпавших объектов. Нужно чтобы перевести состояние игры в GameStats.Showing и обратно при завершении показа несовпавших карточек. Меняется на 2 и в обратном порядке до 0 в обработчике события Controller.onItemsMismatch
+     * 
+     * @type {number}
+     */
+    mismatchCount: 0
 }
 
 /**
@@ -196,6 +213,11 @@ export default class Controller {
                 return;
             }
 
+            // если идет показ правильных ходов - то ничего не делаем
+            if (appState.gameState === GameStates.Cheating) {
+                return;
+            }
+
             if (event.target.classList.contains('item')) {
                 const itemId = +event.target.id.split('-')[1];
                 this.selectItem(itemId);
@@ -275,6 +297,10 @@ export default class Controller {
      */
     onItemsMismatch = (itemIds) => {
         console.log(`Event: mismatch 😔`);
+
+        appState.mismatchCount = 2;
+        appState.gameState = GameStates.Showing;
+
         setTimeout(() => {
             this.items
                 .filter(item => itemIds.includes(item.id))
@@ -284,6 +310,7 @@ export default class Controller {
                     itemElement.classList.remove('faceup');
                     itemElement.style.backgroundColor = '';
                     itemElement.classList.add('facedown');
+                    this.toggleVisibleMismatchItemsCount();
                 });
         }, 800);
     }
@@ -333,6 +360,12 @@ export default class Controller {
                 this.selectItem(e.id);
             }, i * 250)
         });
+    }
 
+    toggleVisibleMismatchItemsCount = () => {
+        appState.mismatchCount--;
+        if (appState.mismatchCount === 0) {
+            appState.gameState = GameStates.InProgress;
+        }
     }
 }
