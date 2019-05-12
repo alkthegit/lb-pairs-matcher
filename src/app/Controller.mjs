@@ -27,7 +27,15 @@ const appState = {
      * 
      * @type {number}
      */
-    mismatchCount: 0
+    mismatchCount: 0,
+
+    /**
+     * Множество идентификаторов угаданных объектов.
+     * Используется, например, при включении режима "Сдаюсь", чтобы не выбирать уже угаданные пользователем объекты
+     * 
+     * @type {number[]}  
+     */
+    matchIds: [],
 }
 
 /**
@@ -172,6 +180,7 @@ export default class Controller {
                 });
 
                 appState.gameState = GameStates.InProgress;
+                appState.matchIds = [];
                 console.log('Игра началась');
 
                 // показываем отсчет премени на текстовом поле - с шагом 20 мс
@@ -346,18 +355,22 @@ export default class Controller {
      * @private
      */
     onGiveUp = () => {
+        console.log(appState.matchIds);
         if (appState.gameState !== GameStates.InProgress) {
             return;
         }
 
         appState.gameState = GameStates.Cheating;
-
         const winStrategy = this.pairsMatcher.getWinStrategy();
-        winStrategy.forEach((e, i) => {
-            setTimeout(() => {
-                this.selectItem(e.id);
-            }, i * 150)
-        });
+        winStrategy
+            // берем только неугаданные
+            .filter((e) => !(appState.matchIds.includes(e.id)))
+            //активируем их в нужном порядке
+            .forEach((e, i) => {
+                setTimeout(() => {
+                    this.selectItem(e.id);
+                }, i * 150)
+            });
     }
 
     /**
@@ -436,12 +449,13 @@ export default class Controller {
             .map(item => item.id)
             .forEach(itemId => {
                 let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
-                // setTimeout(100, () => {
                 itemElement.classList.remove('faceup');
                 itemElement.classList.remove('facedown');
                 itemElement.classList.add('match');
                 itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color
-                // });
+
+                // добавляем id угаданного объекта в список угаданных
+                appState.matchIds.push(itemId);
             });
     }
 }
