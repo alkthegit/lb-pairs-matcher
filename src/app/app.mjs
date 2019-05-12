@@ -4,8 +4,8 @@ import getItems from './cardSets/colorCards8.mjs';
 
 const initializeApp = function initializeApp() {
     const containerDiv = document.querySelector('#app-matcher');
-
-    const controller = new Controller(containerDiv, new PairsMatcher());
+    const pairsMatcher = new PairsMatcher();
+    const controller = new Controller(containerDiv, pairsMatcher);
 }
 
 export default initializeApp; 

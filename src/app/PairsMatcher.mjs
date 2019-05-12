@@ -123,6 +123,13 @@ export default class PairsMatcher {
     items = [];
 
     /**
+     * Последовательность ходов, ведущая к победе - упорядоченный массив идентификаторов объектов в порядке угадывания
+     * 
+     * @type {number[]}
+     */
+    winStrategy = [];
+
+    /**
      * индекс выбранного в настоящий момент и еще не угаданные объект из массива объектов
      * @type {number}
      * @private
@@ -163,6 +170,38 @@ export default class PairsMatcher {
                     this.items.push(new Item(item.id, ItemState.inactive, item.pairId));
                 });
 
+                /* заполняем последовательность ходов (id объектов, ведущую к победе)
+                    для этого упорядочиваем массив объектов по ключу (pairId, id)
+                */
+                console.table(this.items);
+                this.winStrategy = [...this.items]
+                    .map(item => {
+                        return { id: item.id, pairId: item.pairId }
+                    })
+                    .sort((prev, next) => {
+                        if (prev.pairId < next.pairId) {
+                            return -1;
+                        }
+
+                        if (prev.pairId > next.pairId) {
+                            return 1;
+                        }
+
+                        if (prev.pairId === next.pairId) {
+                            if (prev.id < next.id) {
+                                return -1;
+                            }
+                            if (prev.id > next.id) {
+                                return 1;
+                            }
+
+                            // в теории невозможный случай, когда идентификатор объекта не уникальный в наборе объектов
+                            return 0;
+                        }
+                        // в теории невозможный случай, когда идентификатор пары объектов не уникальный в наборе пар
+                        return 0;
+                    });
+
                 // предварительно готовим массив идентификатором исходного набора
                 itemIds = itemsMap.map((e) => e.id);
 
@@ -199,6 +238,7 @@ export default class PairsMatcher {
     selectItem(id) {
         // находим выбранный объект во внутреннем массиве
         const item = this.items.find(e => e.id === id);
+        console.log(`selected: ${item.id}`);
 
         let selectedItem;
         // если данный объект уже был отгадан или активирован, то ничего не делаем
@@ -293,10 +333,17 @@ export default class PairsMatcher {
         }
     };
 
-    // УБРАТЬ - ДЛЯ ТЕСТА
-    getItems() {
-        return [...this.items];
+    /**
+     * Возвращает последовательность ходов (id объектов), ведущую к победе
+     * 
+     * @public
+     * @return {number[]}
+     */
+    getWinStrategy() {
+        return [...this.winStrategy];
     }
+
+
 }
 
 

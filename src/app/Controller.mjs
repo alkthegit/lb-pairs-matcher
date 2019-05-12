@@ -5,7 +5,8 @@ const GameStates = {
     NotStarted: 'Not started',
     InProgress: 'In progress',
     GameOver: 'Game over',
-    Mismatch: 'Mismatch'
+    Mismatch: 'Mismatch',
+    Cheating: 'Cheating'
 }
 
 const appState = {
@@ -100,6 +101,7 @@ export default class Controller {
 
         this.generateViewElements();
         this.bindViewEventListeners();
+        this.bindModelListeners();
         // this.startNewGame();
         // console.table(this.items);
         console.log(`Controller initialized`);
@@ -134,56 +136,6 @@ export default class Controller {
                     `;
 
                     this.itemsElement.insertAdjacentHTML('beforeend', itemHTML);
-                });
-
-                this.pairsMatcher.on(PairsMatcherEvents.Active, (itemId) => {
-                    console.log('Event: active');
-                    // помечаем активированный элемент как активный в представлении
-                    let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
-                    itemElement.classList.remove('facedown');
-                    itemElement.classList.add('faceup');
-                    itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color;
-                });
-
-                this.pairsMatcher.on(PairsMatcherEvents.Match, (itemIds) => {
-                    console.log(`Event: match 😄`);
-                    this.items
-                        .filter(item => itemIds.includes(item.id))
-                        .map(item => item.id)
-                        .forEach(itemId => {
-                            let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
-                            // setTimeout(100, () => {
-                            itemElement.classList.remove('faceup');
-                            itemElement.classList.remove('facedown');
-                            itemElement.classList.add('match');
-                            itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color
-                            // });
-                        })
-                });
-
-                this.pairsMatcher.on(PairsMatcherEvents.Mismatch, (itemIds) => {
-                    console.log(`Event: mismatch 😔`);
-                    setTimeout(() => {
-                        this.items
-                            .filter(item => itemIds.includes(item.id))
-                            .map(item => item.id)
-                            .forEach(itemId => {
-                                const itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
-                                itemElement.classList.remove('faceup');
-                                itemElement.style.backgroundColor = '';
-                                itemElement.classList.add('facedown');
-                            });
-                    }, 800);
-                });
-
-                this.pairsMatcher.on(PairsMatcherEvents.GameOver, (gameStats) => {
-                    clearInterval(timerInterval);
-
-                    console.log(`You win 😎`);
-                    appState.gameState = GameStates.GameOver;
-
-                    const gameTime = this.timeLabelElement.value;
-                    alert(`Вы выиграли!\n\n\n   Затраченно времени: ${gameTime}\n   Сделано ходов: ${gameStats.tries}`);
                 });
 
                 appState.gameState = GameStates.InProgress;
@@ -221,7 +173,12 @@ export default class Controller {
         let viewHTML;
         // кнопка Новая игра и поле со временем игры
         viewHTML = `
-            <button>Новая игра</button> <input type="text" id="timeLabel" readonly>
+            <div class="tools-row">
+                <button id="startGame">Новая игра</button> <input type="text" id="timeLabel" readonly>
+            </div>
+            <div class="tools-row">
+                <button id="giveUp">Сдаюсь!</button>
+            </div>
         `;
         this.boardElement.insertAdjacentHTML('afterbegin', viewHTML);
         this.timeLabelElement = this.containerDiv.querySelector('#timeLabel');
@@ -229,6 +186,7 @@ export default class Controller {
 
     /**
      * Назначает обработчики событий для элементов представления (события интерфейса)
+     * 
      * @private
      */
     bindViewEventListeners() {
@@ -244,10 +202,27 @@ export default class Controller {
             }
         });
 
-        const buttonElement = this.boardElement.querySelector('button');
-        buttonElement.addEventListener('click', () => {
-            this.startNewGame();
-        });
+
+        let element;
+        // Кнопка Начать игру
+        element = this.boardElement.querySelector('button#startGame');
+        element.addEventListener('click', this.onStartGame);
+
+        // Кнопка Сдаюсь
+        element = this.boardElement.querySelector('button#giveUp');
+        element.addEventListener('click', this.onGiveUp);
+    }
+
+    /**
+     * Назначает обработчики событий модели
+     * 
+     * @private
+     */
+    bindModelListeners = () => {
+        this.pairsMatcher.on(PairsMatcherEvents.Active, this.onItemActivate);
+        this.pairsMatcher.on(PairsMatcherEvents.Match, this.onItemsMatch);
+        this.pairsMatcher.on(PairsMatcherEvents.Mismatch, this.onItemsMismatch);
+        this.pairsMatcher.on(PairsMatcherEvents.GameOver, this.onGameOver);
     }
 
     /**
@@ -256,5 +231,108 @@ export default class Controller {
      */
     selectItem(id) {
         this.pairsMatcher.selectItem(id);
+    }
+
+    /**
+     * Обработчик события "объект активирован"
+     * 
+     * @private
+     */
+    onItemActivate = (itemId) => {
+        console.log('Event: active');
+        // помечаем активированный элемент как активный в представлении
+        let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
+        itemElement.classList.remove('facedown');
+        itemElement.classList.add('faceup');
+        itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color;
+    }
+
+    /**
+     * Обработчик события "Совпадение!"
+     * 
+     * @private
+     */
+    onItemsMatch = (itemIds) => {
+        console.log(`Event: match 😄`);
+        this.items
+            .filter(item => itemIds.includes(item.id))
+            .map(item => item.id)
+            .forEach(itemId => {
+                let itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
+                // setTimeout(100, () => {
+                itemElement.classList.remove('faceup');
+                itemElement.classList.remove('facedown');
+                itemElement.classList.add('match');
+                itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color
+                // });
+            });
+    }
+
+    /**
+     * Обработчик события "Несовпадение!"
+     * 
+     * @private
+     */
+    onItemsMismatch = (itemIds) => {
+        console.log(`Event: mismatch 😔`);
+        setTimeout(() => {
+            this.items
+                .filter(item => itemIds.includes(item.id))
+                .map(item => item.id)
+                .forEach(itemId => {
+                    const itemElement = this.itemsElement.querySelector(`#item-${itemId}`);
+                    itemElement.classList.remove('faceup');
+                    itemElement.style.backgroundColor = '';
+                    itemElement.classList.add('facedown');
+                });
+        }, 800);
+    }
+
+    /**
+     * Обработчик события "игра окончена"
+     * 
+     * @private
+     */
+    onGameOver = (gameStats) => {
+        clearInterval(timerInterval);
+
+        console.log(`Event: you win 😎`);
+        appState.gameState = GameStates.GameOver;
+
+        const gameTime = this.timeLabelElement.value;
+        setTimeout(() => {
+            alert(`Вы выиграли!\n\n\n   Затраченно времени: ${gameTime}\n   Сделано ходов: ${gameStats.tries}`)
+        }, 10);
+    }
+
+    /**
+     * Обработчик события "Кнопка Начать игру нажата"
+     * 
+     * @private
+     */
+    onStartGame = () => {
+        this.startNewGame();
+        console.table(this.pairsMatcher.getWinStrategy());
+    }
+
+    /**
+     * Обработчик события "Кнопка Сдаюсь нажата"
+     * 
+     * @private
+     */
+    onGiveUp = () => {
+        if (appState.gameState !== GameStates.InProgress) {
+            return;
+        }
+
+        appState.gameState = GameStates.Cheating;
+
+        const winStrategy = this.pairsMatcher.getWinStrategy();
+        winStrategy.forEach((e, i) => {
+            setTimeout(() => {
+                this.selectItem(e.id);
+            }, i * 250)
+        });
+
     }
 }

@@ -41,7 +41,7 @@ header .main-subheading{
 
 .board{
     width: 250px;
-    height: 280px;
+    height: 300px;
     border: 2px solid #005272 ;
     margin: 15px auto;
     padding: 15px;
@@ -74,11 +74,16 @@ header .main-subheading{
     background-color: white;
     box-shadow: inset 0px 0px 5px 1px goldenrod;
 }
+.item.facedown:active{
+    background-color: white;
+    box-shadow: inset 0px 0px 16px 4px goldenrod;
+}
 
 .item.faceup{
     transform: translateX(-2px) translateY(-2px) scale(1.03);
     position: relative; 
     z-index: 0;
+    transition: width 2s;
     /* box-shadow: 5px 5px 20px 5px black; */
 }
 
@@ -105,10 +110,19 @@ header .main-subheading{
     margin-bottom: 5px;
     height: 1.5em;
     padding: 1px 3px;
-}   
+}
 
 .board input{
-    width: 7em;
-    float: right;
     text-align: right;
+    width: 5em;
+    height: 1.2em;
+    margin-bottom: 5px;
+    margin-right: 0;
+    justify-self: flex-end;
+}
+
+.tools-row{
+    display:flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
