@@ -232,13 +232,15 @@ export default class PairsMatcher {
     /**
      * Активирует элемент массива объектов по указанному индексу в массиве.
      * Так же проверяет, не был ли уже активирован объект-пара. Если был, то помечает объекты угаланными и испускает событие PairsMatcherEvents.match
-     * @param {number} index
+     * @param {number} id идентификатор выбранного элемента
      */
     selectItem(id) {
-        // находим выбранный объект во внутреннем массиве
+        // находим новый выбранный объект во внутреннем массиве
         const item = this.items.find(e => e.id === id);
 
+        // уже выранный, то есть текущий активный элемент (если он ране был выбран)
         let selectedItem;
+
         // если данный объект уже был отгадан или активирован, то ничего не делаем
         if (item.state !== ItemState.inactive) {
             console.log(`указанный объект id=${id} уже показан или угадан, ничего не делаем`);
@@ -254,6 +256,7 @@ export default class PairsMatcher {
                 // если это - одна пара - помечаем их как угаанные и отправляем событие с индексом пары
                 item.state = selectedItem.state = ItemState.match;
                 this.selectedItemId = -1;
+                this.emit(PairsMatcherEvents.Active, item.id);
                 this.emit(PairsMatcherEvents.Match, [selectedItem.id, item.id]);
 
                 this.pairsToMatch--;
@@ -261,7 +264,9 @@ export default class PairsMatcher {
                     // если все пары угаданы, то отправляем соответствующее событие
                     this.endGame();
                     const gameStats = this.getGameStats();
-                    this.emit(PairsMatcherEvents.GameOver, gameStats);
+                    setTimeout(() => {
+                        this.emit(PairsMatcherEvents.GameOver, gameStats);
+                    }, 0);
                 }
             }
             else {

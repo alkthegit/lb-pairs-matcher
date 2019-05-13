@@ -195,7 +195,7 @@ export default class Controller {
                     const milliseconds = `000${date.getMilliseconds().toString()}`.slice(-3);
                     this.timeLabelElement.value = `${minutes}:${seconds}.${milliseconds}`;
                 }, 20);
-                this.toggleElementEnabled(this.startGameButtonElement);
+                this.toggleElementDisabled(this.startGameButtonElement);
             });
     }
 
@@ -295,6 +295,9 @@ export default class Controller {
 
         // помечаем активированный элемент как активный в представлении
         this.setItemActivated(itemId);
+
+        // отключаем кнопку сдаюсь пока не хавершен ход
+        this.toggleElementDisabled(this.giveUpButtonElement, true);
     }
 
     /**
@@ -307,6 +310,9 @@ export default class Controller {
 
         // помечаем активированный элементы как угаданные
         this.setItemsMatch(itemIds);
+
+        // включаем кнопку сдаюсь
+        this.toggleElementDisabled(this.giveUpButtonElement, false);
     }
 
     /**
@@ -319,6 +325,9 @@ export default class Controller {
 
         // помечаем активированный элементы как неугаданные
         this.setItemsMismatch(itemIds);
+
+        // включаем кнопку сдаюсь
+        this.toggleElementDisabled(this.giveUpButtonElement, false);
     }
 
     /**
@@ -333,11 +342,19 @@ export default class Controller {
         appState.gameState = GameStates.GameOver;
 
         const gameTime = this.timeLabelElement.value;
-        setTimeout(() => {
-            alert(`Вы выиграли!\n\n\n   Затраченно времени: ${gameTime}\n   Сделано ходов: ${gameStats.tries}`)
-        }, 10);
 
-        this.toggleElementEnabled(this.startGameButtonElement);
+        /* Ждем завершения текущей игровой динамики */
+        const interval = setInterval(() => {
+            console.log(appState.gameState);
+            if (appState.gameState !== GameStates.GameOver) {
+                return;
+            }
+            clearInterval(interval);
+            console.log(`alert`);
+            alert(`Вы выиграли!\n\n\n   Затраченно времени: ${gameTime}\n   Сделано ходов: ${gameStats.tries}`)
+        }, 100);
+
+        this.toggleElementDisabled(this.startGameButtonElement);
     }
 
     /**
@@ -368,7 +385,7 @@ export default class Controller {
             .forEach((e, i) => {
                 setTimeout(() => {
                     this.selectItem(e.id);
-                }, i * 150)
+                }, i * 200)
             });
     }
 
@@ -390,14 +407,26 @@ export default class Controller {
     /**
      * Переключает состояние доступности для элемента (например, кнопок в игре)
      * 
+     * @param {HTMLElement} element Элемент, доступность которого нужно переключить
+     * @param {boolean} enabled Состояние элемента - выключен (true) или включен (false). Если не указано, то переключает текущее состояние на противоплоложное
      * @private
      */
-    toggleElementEnabled = (element) => {
-        if (!element.getAttribute('disabled')) {
-            element.setAttribute('disabled', 'true')
+    toggleElementDisabled = (element, disabled) => {
+        if (typeof disabled === 'undefined') {
+            if (!element.getAttribute('disabled')) {
+                element.setAttribute('disabled', 'true')
+            }
+            else {
+                element.removeAttribute('disabled');
+            }
         }
         else {
-            element.removeAttribute('disabled', 'false');
+            if (disabled) {
+                element.setAttribute('disabled', `true`)
+            }
+            else {
+                element.removeAttribute('disabled');
+            }
         }
     }
 
@@ -451,7 +480,7 @@ export default class Controller {
                 itemElement.classList.remove('faceup');
                 itemElement.classList.remove('facedown');
                 itemElement.classList.add('match');
-                itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color
+                itemElement.style.backgroundColor = this.items.find((e) => e.id === itemId).color;
 
                 // добавляем id угаданного объекта в список угаданных
                 appState.matchIds.push(itemId);
