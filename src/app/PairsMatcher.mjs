@@ -243,7 +243,6 @@ export default class PairsMatcher {
 
         // если данный объект уже был отгадан или активирован, то ничего не делаем
         if (item.state !== ItemState.inactive) {
-            console.log(`указанный объект id=${id} уже показан или угадан, ничего не делаем`);
             return;
         }
 
